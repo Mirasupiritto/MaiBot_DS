@@ -595,7 +595,7 @@ async def handle_tool(
             reply_metadata=reply_metadata,
             replyer_context_messages=replyer_chat_history,
         )
-    return tool_ctx.build_success_result(
+    result = tool_ctx.build_success_result(
         invocation.tool_name,
         f'"{bot_name}"已生成并向"{target_user_name}"发送了回复"{combined_reply_text}"',
         structured_content={
@@ -609,3 +609,7 @@ async def handle_tool(
         },
         metadata=reply_metadata,
     )
+    # 当前部署面向低流量测试群：成功回复后直接休眠，等待下一条新消息唤醒，
+    # 避免 Planner 为了选择 wait 而继续产生无意义的模型调用。
+    result.stop_after_execution = True
+    return result

@@ -7,6 +7,9 @@ from src.core.tooling import ToolExecutionContext, ToolExecutionResult, ToolInvo
 from .context import BuiltinToolRuntimeContext
 
 
+MAX_WAIT_SECONDS = 5
+
+
 def get_tool_spec() -> ToolSpec:
     """获取 wait 工具声明。"""
 
@@ -41,7 +44,8 @@ async def handle_tool(
         wait_seconds = int(seconds)
     except (TypeError, ValueError):
         wait_seconds = 30
-    wait_seconds = max(0, wait_seconds)
+    # 这个部署以明确 @ / 私聊触发为主，长时间固定等待会让新消息无法及时处理。
+    wait_seconds = min(max(0, wait_seconds), MAX_WAIT_SECONDS)
     entered, current_count, max_count = tool_ctx.runtime._try_enter_wait_state(
         seconds=wait_seconds,
         tool_call_id=invocation.call_id,
